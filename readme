@@ -1,0 +1,68 @@
+RockyBot: News Research Tool with Gemini + Streamlit
+RockyBot is a GenAI-powered web app that lets you analyze and query news articles using Google's Gemini API, LangChain, and Streamlit. It supports URL-based document loading, embeddings with FAISS, and smart Q&A retrieval with sources.
+
+
+Features
+Enter up to 3 article URLs
+Extracts, splits, and indexes the content
+Ask natural language questions about the articles
+Uses Gemini (Gemini 1.5 / 2) for contextual answers
+Displays source citations
+
+Project Structure
+gen_ai_proj/
+│
+├── app.py                  # Main Streamlit app
+├── Dockerfile              # Docker config for deployment
+├── cloudbuild.yaml         # GCP Cloud Build config
+├── requirements.txt        # Python dependencies
+├── .env                    # Local env variables (not pushed to GitHub)
+└── README.md               # Project documentation
+
+1. Clone the repository
+git clone https://github.com/your-username/rockybot-genai.git
+cd rockybot-genai
+
+2. Set up virtual environment (without Conda)
+python -m venv venv
+.\venv\Scripts\activate      # On Windows
+
+3. Install dependencies
+pip install -r requirements.txt
+
+4. Set your Google Gemini API key
+GOOGLE_API_KEY=your-gemini-api-key
+
+5. Run the app locally
+streamlit run app.py
+
+
+Deployment on Google Cloud Run (via Cloud Build)
+✅ Prerequisites
+1.Python 3.10+
+2.Google Cloud SDK installed and authenticated (gcloud auth login)
+3.GCP project created (gen-ai-proj-460914)
+4.Enable these services:
+
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+
+🔁 Deployment Steps
+1. Update Dockerfile
+Make sure your Dockerfile uses this final version:
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8080
+CMD streamlit run app.py --server.port=$PORT --server.address=0.0.0.0
+
+2. Build & Push Docker Image to GCP
+gcloud builds submit --config cloudbuild.yaml --project=gen-ai-proj-460914 .
+
+3. Deploy to Cloud Run
+gcloud run deploy rockybot-streamlit --image gcr.io/gen-ai-proj-460914/rockybot-streamlit --platform managed --region us-central1 --allow-unauthenticated --project=gen-ai-proj-460914 --update-env-vars GOOGLE_API_KEY="AIzaSyAF-r96MjMm1Bz-URtcxVna4dVnYAwFN6e"
+
+
+
+
